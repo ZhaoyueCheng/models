@@ -229,7 +229,8 @@ def _get_tpu_embedding_layer(
         name=table_name_prefix + "_%s" % i,
     )
     feature_config[str(i)] = tf.tpu.experimental.embedding.FeatureConfig(
-        table=table_config, output_shape=[NUM_SAMPLES_PER_CORE, embedding_dim]
+        # table=table_config, output_shape=[NUM_SAMPLES_PER_CORE, embedding_dim]
+        table=table_config
     )
 
   tpu_embedding = tfrs.layers.embedding.TPUEmbedding(

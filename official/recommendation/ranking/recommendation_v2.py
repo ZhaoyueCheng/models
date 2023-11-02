@@ -195,8 +195,8 @@ class Recommendation(models.Model):
     sparse_embeddings = self._embedding_layer(sparse_features)
     print("sparse embeddings before reduce: ", sparse_embeddings)
     # sparse arch
-    for k, _ in sparse_embeddings.items():
-      sparse_embeddings[k] = tf.reduce_mean(sparse_embeddings[k], axis=1)
+    # for k, _ in sparse_embeddings.items():
+    #   sparse_embeddings[k] = tf.reduce_mean(sparse_embeddings[k], axis=1)
 
     # Combine a dictionary into a vector and squeeze dimension from
     # (batch_size, 1, emb_dim) to (batch_size, emb_dim).
@@ -208,12 +208,16 @@ class Recommendation(models.Model):
     dense_embedding_vec = self._bottom_stack(dense_features)
     print("dense embedding vec ", dense_embedding_vec)
     print("sparse embedding vec ", sparse_embedding_vecs)
-    interaction_args = sparse_embedding_vecs + [dense_embedding_vec]
-    interaction_output = self._feature_interaction(interaction_args)
-    feature_interaction_output = tf.concat(
-        [dense_embedding_vec, interaction_output], axis=1)
 
-    prediction = self._top_stack(feature_interaction_output)
+    sprase_embedding_concat = tf.concat(sparse_embedding_vecs, axis=1)
+    dense_sparse_embedding_concat = tf.concat([sprase_embedding_concat, dense_embedding_vec], axis=1)
+
+    # interaction_args = sparse_embedding_vecs + [dense_embedding_vec]
+    interaction_output = self._feature_interaction(dense_sparse_embedding_concat)
+    # feature_interaction_output = tf.concat(
+    #     [dense_embedding_vec, interaction_output], axis=1)
+
+    prediction = self._top_stack(interaction_output)
 
     return tf.reshape(prediction, [-1])
 

@@ -139,7 +139,8 @@ class LowRankDCN(tf.keras.layers.Layer):
     # Gagik - this does not seem so right, need you help here.
     # As per the layer - 
     # https://github.com/pytorch/torchrec/blob/main/torchrec/modules/crossnet.py#L92
-    last_dim = input_shape[-1][-1]
+    # last_dim = input_shape[-1][-1]
+    last_dim = input_shape[-1]
     self._construct_dense_u_kernels()
     self._construct_dense_v_kernels(last_dim)
     self.built = True
@@ -159,8 +160,13 @@ class LowRankDCN(tf.keras.layers.Layer):
     # print(x0.shape, self.built)
     # pass
     # print("x0 and x1", x0, x)
-    x0 = x0_l[0]
-    x = x0_l[1]
+    print("x0 l ", x0_l)
+    print("x ", x)
+    x0 = x0_l
+    x = x0_l
+
+    print("x0 ", x0)
+    print("x ", x)
 
     if not self.built:
       print("calling build ", x0.shape)
