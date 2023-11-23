@@ -116,7 +116,7 @@ class CriteoTsvReader:
         cycle_length=params.cycle_length,
         num_parallel_calls=tf.data.experimental.AUTOTUNE)
 
-    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE).take(100).cache().repeat()
 
     return dataset
 
