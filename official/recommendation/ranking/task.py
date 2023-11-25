@@ -177,6 +177,11 @@ class RankingTask(base_task.Task):
           tf.keras.layers.Concatenate(),
           tfrs.layers.feature_interaction.Cross()
       ])
+    elif self.task_config.model.interaction == 'lowrankdcn':
+      feature_interaction = tf.keras.Sequential([
+          tf.keras.layers.Concatenate(),
+          tfrs.layers.feature_interaction.LowRankDCN(num_layers=3)
+      ])
     else:
       raise ValueError(
           f'params.task.model.interaction {self.task_config.model.interaction} '
@@ -189,6 +194,7 @@ class RankingTask(base_task.Task):
         feature_interaction=feature_interaction,
         top_stack=tfrs.layers.blocks.MLP(
             units=self.task_config.model.top_mlp, final_activation='sigmoid'),
+        concat_dense=False,
     )
     optimizer = tfrs.experimental.optimizers.CompositeOptimizer([
         (embedding_optimizer, lambda: model.embedding_trainable_variables),
