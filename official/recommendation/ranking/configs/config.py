@@ -99,11 +99,15 @@ class ModelConfig(hyperparams.Config):
   """
   num_dense_features: int = 13
   vocab_sizes: List[int] = dataclasses.field(default_factory=list)
+  use_multi_hot: bool = False,
+  multi_hot_sizes: List[int] = dataclasses.field(default_factory=list)
   embedding_dim: Union[int, List[int]] = 8
   size_threshold: int = 50_000
   bottom_mlp: List[int] = dataclasses.field(default_factory=list)
   top_mlp: List[int] = dataclasses.field(default_factory=list)
   interaction: str = 'dot'
+  concat_dense: bool = True
+  num_dcn_layers: int = 3
 
 
 @dataclasses.dataclass

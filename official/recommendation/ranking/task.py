@@ -24,7 +24,7 @@ from official.core import base_task
 from official.core import config_definitions
 from official.recommendation.ranking import common
 from official.recommendation.ranking.configs import config
-from official.recommendation.ranking.data import data_pipeline
+from official.recommendation.ranking.data import data_pipeline, data_pipeline_multi_hot
 
 RuntimeConfig = config_definitions.RuntimeConfig
 
@@ -106,12 +106,21 @@ class RankingTask(base_task.Task):
   def build_inputs(self, params, input_context=None):
     """Builds classification input."""
 
-    dataset = data_pipeline.CriteoTsvReader(
-        file_pattern=params.input_path,
-        params=params,
-        vocab_sizes=self.task_config.model.vocab_sizes,
-        num_dense_features=self.task_config.model.num_dense_features,
-        use_synthetic_data=self.task_config.use_synthetic_data)
+    if self.task_config.model.use_multi_hot:
+      dataset = data_pipeline_multi_hot.CriteoTsvReaderMultiHot(
+          file_pattern=params.input_path,
+          params=params,
+          vocab_sizes=self.task_config.model.vocab_sizes,
+          multi_hot_sizes=self.task_config.model.multi_hot_sizes,
+          num_dense_features=self.task_config.model.num_dense_features,
+          use_synthetic_data=self.task_config.use_synthetic_data)
+    else:
+      dataset = data_pipeline.CriteoTsvReader(
+          file_pattern=params.input_path,
+          params=params,
+          vocab_sizes=self.task_config.model.vocab_sizes,
+          num_dense_features=self.task_config.model.num_dense_features,
+          use_synthetic_data=self.task_config.use_synthetic_data)
 
     return dataset(input_context)
 
@@ -162,12 +171,19 @@ class RankingTask(base_task.Task):
         // tf.distribute.get_strategy().num_replicas_in_sync,
     )
 
-    embedding_layer = tfrs.experimental.layers.embedding.PartialTPUEmbedding(
-        feature_config=feature_config,
-        optimizer=embedding_optimizer,
-        pipeline_execution_with_tensor_core=self.trainer_config.pipeline_sparse_and_dense_execution,
-        size_threshold=self.task_config.model.size_threshold,
-    )
+    if self.task_config.model.use_multi_hot:
+      embedding_layer = tfrs.layers.embedding.tpu_embedding_layer.TPUEmbedding(
+          feature_config=feature_config,
+          optimizer=embedding_optimizer,
+          pipeline_execution_with_tensor_core=self.trainer_config.pipeline_sparse_and_dense_execution,
+      )
+    else:
+      embedding_layer = tfrs.experimental.layers.embedding.PartialTPUEmbedding(
+          feature_config=feature_config,
+          optimizer=embedding_optimizer,
+          pipeline_execution_with_tensor_core=self.trainer_config.pipeline_sparse_and_dense_execution,
+          size_threshold=self.task_config.model.size_threshold,
+      )
 
     if self.task_config.model.interaction == 'dot':
       feature_interaction = tfrs.layers.feature_interaction.DotInteraction(
@@ -176,6 +192,11 @@ class RankingTask(base_task.Task):
       feature_interaction = tf_keras.Sequential([
           tf_keras.layers.Concatenate(),
           tfrs.layers.feature_interaction.Cross()
+      ])
+    elif self.task_config.model.interaction == 'multi_layer_dcn':
+      feature_interaction = tf.keras.Sequential([
+          tf.keras.layers.Concatenate(),
+          tfrs.layers.feature_interaction.MultiLayerDCN(),
       ])
     else:
       raise ValueError(
@@ -189,6 +210,7 @@ class RankingTask(base_task.Task):
         feature_interaction=feature_interaction,
         top_stack=tfrs.layers.blocks.MLP(
             units=self.task_config.model.top_mlp, final_activation='sigmoid'),
+        concat_dense=self.task_config.model.concat_dense,
     )
     optimizer = tfrs.experimental.optimizers.CompositeOptimizer([
         (embedding_optimizer, lambda: model.embedding_trainable_variables),
