@@ -196,7 +196,13 @@ class RankingTask(base_task.Task):
     elif self.task_config.model.interaction == 'multi_layer_dcn':
       feature_interaction = tf.keras.Sequential([
           tf.keras.layers.Concatenate(),
-          tfrs.layers.feature_interaction.MultiLayerDCN(),
+          tfrs.layers.feature_interaction.MultiLayerDCN(
+              projection_dim=self.task_config.model.dcn_low_rank_dim,
+              num_layers=self.task_config.model.dcn_num_layers,
+              use_bias=self.task_config.model.dcn_use_bias,
+              kernel_initializer=self.task_config.model.dcn_kernel_initializer,
+              bias_initializer=self.task_config.model.dcn_bias_initializer,
+          ),
       ])
     else:
       raise ValueError(

@@ -107,8 +107,11 @@ class ModelConfig(hyperparams.Config):
   top_mlp: List[int] = dataclasses.field(default_factory=list)
   interaction: str = 'dot'
   concat_dense: bool = True
-  num_dcn_layers: int = 3
-
+  dcn_num_layers: int = 3
+  dcn_low_rank_dim: int = 512
+  dcn_kernel_initializer: str = 'truncated_normal'
+  dcn_bias_initializer: str = 'zeros'
+  dcn_use_bias: bool = True
 
 @dataclasses.dataclass
 class Loss(hyperparams.Config):
