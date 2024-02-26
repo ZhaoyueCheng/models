@@ -186,6 +186,110 @@ class CriteoTsvReaderMultiHot:
     return dataset.batch(batch_size, drop_remainder=True)
 
 
+class CriteoTFRecordReader(object):
+  """Input reader fn for TFRecords that have been serialized in batched form."""
+
+  def __init__(self,
+               file_pattern: str,
+               params: config.DataConfig,
+               num_dense_features: int,
+               vocab_sizes: List[int],
+               multi_hot_sizes: List[int],):
+    self._file_pattern = file_pattern
+    self._params = params
+    self._num_dense_features = num_dense_features
+    self._vocab_sizes = vocab_sizes
+    self._multi_hot_sizes = multi_hot_sizes
+
+    self.label_features = 'label'
+    self.dense_features = ['dense-feature-%d' % x for x in range(1, 14)]
+    self.sparse_features = ['sparse-feature-%d' % x for x in range(14, 40)]
+
+  def __call__(self, ctx: tf.distribute.InputContext):
+    params = self._params
+    # Per replica batch size.
+    batch_size = (
+        ctx.get_per_replica_batch_size(params.global_batch_size)
+        if ctx
+        else params.global_batch_size
+    )
+
+    def _get_feature_spec():
+      feature_spec = {}
+      feature_spec[self.label_features] = tf.io.FixedLenFeature(
+          [], dtype=tf.int64
+      )
+      for dense_feat in self.dense_features:
+        feature_spec[dense_feat] = tf.io.FixedLenFeature(
+            [],
+            dtype=tf.float32,
+        )
+      for i, sparse_feat in enumerate(self.sparse_features):
+        feature_spec[sparse_feat] = tf.io.FixedLenFeature(
+            [self._multi_hot_sizes[i]], dtype=tf.int64
+        )
+      return feature_spec
+
+    def _parse_fn(serialized_example):
+      feature_spec = _get_feature_spec()
+      parsed_features = tf.io.parse_single_example(
+          serialized_example, feature_spec
+      )
+      label = parsed_features[self.label_features]
+      features = {}
+      int_features = []
+      for dense_ft in self.dense_features:
+        int_features.append(parsed_features[dense_ft])
+      features['dense_features'] = tf.stack(int_features)
+
+      features['sparse_features'] = {}
+      for i, sparse_ft in enumerate(self.sparse_features):
+        features['sparse_features'][str(i)] = tf.sparse.from_dense(
+            parsed_features[sparse_ft]
+        )
+
+      return features, label
+
+    filenames = tf.data.Dataset.list_files(self._file_pattern, shuffle=False)
+    # Shard the full dataset according to host number.
+    # Each host will get 1 / num_of_hosts portion of the data.
+    if params.sharding and ctx and ctx.num_input_pipelines > 1:
+      filenames = filenames.shard(ctx.num_input_pipelines,
+                                  ctx.input_pipeline_id)
+
+    num_shards_per_host = 1
+    if params.sharding:
+      num_shards_per_host = params.num_shards_per_host
+
+    def make_dataset(shard_index):
+      filenames_for_shard = filenames.shard(num_shards_per_host, shard_index)
+      dataset = tf.data.TFRecordDataset(
+          filenames_for_shard, num_parallel_reads=tf.data.experimental.AUTOTUNE
+      )
+      if params.is_training:
+        dataset = dataset.repeat()
+      dataset = dataset.map(
+          _parse_fn, num_parallel_calls=tf.data.experimental.AUTOTUNE
+      )
+      return dataset
+
+    indices = tf.data.Dataset.range(num_shards_per_host)
+    dataset = indices.interleave(
+        map_func=make_dataset,
+        cycle_length=params.cycle_length,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+
+    dataset = dataset.batch(
+        batch_size,
+        drop_remainder=True,
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+
+    return dataset
+
+
 def train_input_fn(params: config.Task) -> CriteoTsvReaderMultiHot:
   """Returns callable object of batched training examples.
 

@@ -105,7 +105,6 @@ class RankingTask(base_task.Task):
 
   def build_inputs(self, params, input_context=None):
     """Builds classification input."""
-
     if self.task_config.model.use_multi_hot:
       dataset = data_pipeline_multi_hot.CriteoTsvReaderMultiHot(
           file_pattern=params.input_path,
@@ -130,7 +129,7 @@ class RankingTask(base_task.Task):
     """See base class. Return None, optimizer is set in `build_model`."""
     return None
 
-  def build_model(self) -> tf_keras.Model:
+  def build_model(self) -> tf.keras.Model:
     """Creates Ranking model architecture and Optimizers.
 
     The RankingModel uses different optimizers/learning rates for embedding
@@ -147,11 +146,11 @@ class RankingTask(base_task.Task):
         warmup_steps=lr_config.warmup_steps,
         decay_steps=lr_config.decay_steps,
         decay_start_steps=lr_config.decay_start_steps)
-    embedding_optimizer = tf_keras.optimizers.get(
+    embedding_optimizer = tf.keras.optimizers.get(
         self.optimizer_config.embedding_optimizer, use_legacy_optimizer=True)
     embedding_optimizer.learning_rate = lr_callable
 
-    dense_optimizer = tf_keras.optimizers.get(
+    dense_optimizer = tf.keras.optimizers.get(
         self.optimizer_config.dense_optimizer, use_legacy_optimizer=True)
     if self.optimizer_config.dense_optimizer == 'SGD':
       dense_lr_config = self.optimizer_config.dense_sgd_config
@@ -167,8 +166,8 @@ class RankingTask(base_task.Task):
     feature_config = _get_tpu_embedding_feature_config(
         embedding_dim=self.task_config.model.embedding_dim,
         vocab_sizes=self.task_config.model.vocab_sizes,
-        batch_size=self.task_config.train_data.global_batch_size
-        // tf.distribute.get_strategy().num_replicas_in_sync,
+        # batch_size=self.task_config.train_data.global_batch_size
+        # // tf.distribute.get_strategy().num_replicas_in_sync,
     )
 
     if self.task_config.model.use_multi_hot:
@@ -189,8 +188,8 @@ class RankingTask(base_task.Task):
       feature_interaction = tfrs.layers.feature_interaction.DotInteraction(
           skip_gather=True)
     elif self.task_config.model.interaction == 'cross':
-      feature_interaction = tf_keras.Sequential([
-          tf_keras.layers.Concatenate(),
+      feature_interaction = tf.keras.Sequential([
+          tf.keras.layers.Concatenate(),
           tfrs.layers.feature_interaction.Cross()
       ])
     elif self.task_config.model.interaction == 'multi_layer_dcn':
@@ -206,16 +205,19 @@ class RankingTask(base_task.Task):
       ])
     else:
       raise ValueError(
-          f'params.task.model.interaction {self.task_config.model.interaction} '
-          f'is not supported it must be either \'dot\' or \'cross\'.')
+          f' {self.task_config.model.interaction} is not supported it must be'
+          " either 'dot' or 'cross' or 'multi_layer_dcn'."
+      )
 
     model = tfrs.experimental.models.Ranking(
         embedding_layer=embedding_layer,
         bottom_stack=tfrs.layers.blocks.MLP(
-            units=self.task_config.model.bottom_mlp, final_activation='relu'),
+            units=self.task_config.model.bottom_mlp, final_activation='relu'
+        ),
         feature_interaction=feature_interaction,
         top_stack=tfrs.layers.blocks.MLP(
-            units=self.task_config.model.top_mlp, final_activation='sigmoid'),
+            units=self.task_config.model.top_mlp, final_activation='sigmoid'
+        ),
         concat_dense=self.task_config.model.concat_dense,
     )
     optimizer = tfrs.experimental.optimizers.CompositeOptimizer([
@@ -229,9 +231,9 @@ class RankingTask(base_task.Task):
   def train_step(
       self,
       inputs: Dict[str, tf.Tensor],
-      model: tf_keras.Model,
-      optimizer: tf_keras.optimizers.Optimizer,
-      metrics: Optional[List[tf_keras.metrics.Metric]] = None) -> tf.Tensor:
+      model: tf.keras.Model,
+      optimizer: tf.keras.optimizers.Optimizer,
+      metrics: Optional[List[tf.keras.metrics.Metric]] = None) -> tf.Tensor:
     """See base class."""
     # All metrics need to be passed through the RankingModel.
     assert metrics == model.metrics
@@ -240,8 +242,8 @@ class RankingTask(base_task.Task):
   def validation_step(
       self,
       inputs: Dict[str, tf.Tensor],
-      model: tf_keras.Model,
-      metrics: Optional[List[tf_keras.metrics.Metric]] = None) -> tf.Tensor:
+      model: tf.keras.Model,
+      metrics: Optional[List[tf.keras.metrics.Metric]] = None) -> tf.Tensor:
     """See base class."""
     # All metrics need to be passed through the RankingModel.
     assert metrics == model.metrics
