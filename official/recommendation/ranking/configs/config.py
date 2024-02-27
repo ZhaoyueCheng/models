@@ -154,6 +154,7 @@ class Task(hyperparams.Config):
   )
   loss: Loss = dataclasses.field(default_factory=Loss)
   use_synthetic_data: bool = False
+  use_tf_record_reader: bool = False
 
 
 @dataclasses.dataclass

@@ -106,13 +106,21 @@ class RankingTask(base_task.Task):
   def build_inputs(self, params, input_context=None):
     """Builds classification input."""
     if self.task_config.model.use_multi_hot:
-      dataset = data_pipeline_multi_hot.CriteoTsvReaderMultiHot(
-          file_pattern=params.input_path,
-          params=params,
-          vocab_sizes=self.task_config.model.vocab_sizes,
-          multi_hot_sizes=self.task_config.model.multi_hot_sizes,
-          num_dense_features=self.task_config.model.num_dense_features,
-          use_synthetic_data=self.task_config.use_synthetic_data)
+      if self.task_config.use_tf_record_reader:
+        dataset = data_pipeline_multi_hot.CriteoTFRecordReader(
+            file_pattern=params.input_path,
+            params=params,
+            vocab_sizes=self.task_config.model.vocab_sizes,
+            multi_hot_sizes=self.task_config.model.multi_hot_sizes,
+            num_dense_features=self.task_config.model.num_dense_features)
+      else:
+        dataset = data_pipeline_multi_hot.CriteoTsvReaderMultiHot(
+            file_pattern=params.input_path,
+            params=params,
+            vocab_sizes=self.task_config.model.vocab_sizes,
+            multi_hot_sizes=self.task_config.model.multi_hot_sizes,
+            num_dense_features=self.task_config.model.num_dense_features,
+            use_synthetic_data=self.task_config.use_synthetic_data)
     else:
       dataset = data_pipeline.CriteoTsvReader(
           file_pattern=params.input_path,
@@ -166,8 +174,8 @@ class RankingTask(base_task.Task):
     feature_config = _get_tpu_embedding_feature_config(
         embedding_dim=self.task_config.model.embedding_dim,
         vocab_sizes=self.task_config.model.vocab_sizes,
-        # batch_size=self.task_config.train_data.global_batch_size
-        # // tf.distribute.get_strategy().num_replicas_in_sync,
+        batch_size=self.task_config.train_data.global_batch_size
+        // tf.distribute.get_strategy().num_replicas_in_sync,
     )
 
     if self.task_config.model.use_multi_hot:

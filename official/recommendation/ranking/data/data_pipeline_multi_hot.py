@@ -9,13 +9,19 @@ import tensorflow as tf
 from official.recommendation.ranking.configs import config
 
 class CriteoTsvReaderMultiHot:
-  """Input reader callable for pre-processed Criteo data.
+  """Input reader callable for pre-processed Multi Hot Criteo data.
 
   Raw Criteo data is assumed to be preprocessed in the following way:
   1. Missing values are replaced with zeros.
   2. Negative values are replaced with zeros.
   3. Integer features are transformed by log(x+1) and are hence tf.float32.
   4. Categorical data is bucketized and are hence tf.int32.
+  
+  Implements a TsvReaderMultiHot for reading data from a criteo dataset and 
+  generate multi hot synthetic data using the provided vocab_sizes and
+  multi_hot_sizes, also includes a complete synthetic data generator as well as 
+  a TFRecordReader to read data from pre materialized multi hot synthetic 
+  dataset that converted to TFRecords
   """
 
   def __init__(self,
@@ -264,7 +270,7 @@ class CriteoTFRecordReader(object):
     def make_dataset(shard_index):
       filenames_for_shard = filenames.shard(num_shards_per_host, shard_index)
       dataset = tf.data.TFRecordDataset(
-          filenames_for_shard, num_parallel_reads=tf.data.experimental.AUTOTUNE
+          filenames_for_shard
       )
       if params.is_training:
         dataset = dataset.repeat()
@@ -323,5 +329,5 @@ def eval_input_fn(params: config.Task) -> CriteoTsvReaderMultiHot:
       params=params.validation_data,
       vocab_sizes=params.model.vocab_sizes,
       num_dense_features=params.model.num_dense_features,
-      multi_hot_sizes=params.model.multi_hot_sizes, 
+      multi_hot_sizes=params.model.multi_hot_sizes,
       use_synthetic_data=params.use_synthetic_data)
