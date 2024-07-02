@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -180,6 +180,28 @@ class RetinaNetHeadTest(parameterized.TestCase, tf.test.TestCase):
         '4': np.random.rand(2, 64, 64, 16),
     }
     retinanet_head(features)
+
+  def test_forward_with_num_anchors_per_location_by_level(self):
+    bs = 2
+    retinanet_head = dense_prediction_heads.RetinaNetHead(
+        min_level=3,
+        max_level=4,
+        num_classes=7,
+        num_anchors_per_location={'3': 2, '4': 5},
+        num_convs=0,
+        num_filters=123,
+        attribute_heads=None,
+        share_level_convs=False,
+    )
+    features = {
+        '3': np.random.rand(bs, 32, 32, 11),
+        '4': np.random.rand(bs, 16, 16, 13),
+    }
+    scores, boxes, _ = retinanet_head(features)
+    self.assertAllEqual(scores['3'].numpy().shape, [bs, 32, 32, 2 * 7])
+    self.assertAllEqual(boxes['3'].numpy().shape, [bs, 32, 32, 2 * 4])
+    self.assertAllEqual(scores['4'].numpy().shape, [bs, 16, 16, 5 * 7])
+    self.assertAllEqual(boxes['4'].numpy().shape, [bs, 16, 16, 5 * 4])
 
   def test_serialize_deserialize(self):
     retinanet_head = dense_prediction_heads.RetinaNetHead(

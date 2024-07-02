@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -47,6 +47,7 @@ class BertEncoderConfig(hyperparams.Config):
   output_range: Optional[int] = None
   return_all_encoder_outputs: bool = False
   return_attention_scores: bool = False
+  return_word_embeddings: bool = False
   # Pre/Post-LN Transformer
   norm_first: bool = False
 
@@ -769,5 +770,6 @@ def build_encoder(config: EncoderConfig,
       embedding_layer=embedding_layer,
       return_all_encoder_outputs=encoder_cfg.return_all_encoder_outputs,
       return_attention_scores=encoder_cfg.return_attention_scores,
+      return_word_embeddings=encoder_cfg.return_word_embeddings,
       dict_outputs=True,
       norm_first=encoder_cfg.norm_first)

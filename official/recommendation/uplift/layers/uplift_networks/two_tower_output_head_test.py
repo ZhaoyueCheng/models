@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -191,11 +191,31 @@ class TwoTowerOutputHeadTest(
     outputs = layer(inputs)
     self.assertAllEqual(tf.constant([2, -1, 3]), outputs.true_logits)
 
+  def test_true_preds_correspond_to_control_and_treatment_preds(self):
+    layer = self._get_layer(inverse_link_fn=tf.nn.relu)
+    inputs = self._get_inputs(
+        control_logits=tf.constant([2, 0, 3]),
+        treatment_logits=tf.constant([-1, 2, 1]),
+        is_treatment=tf.constant([1, 1, 0]),
+    )
+    outputs = layer(inputs)
+    self.assertAllEqual(tf.constant([0, 2, 3]), outputs.true_predictions)
+
   def test_is_treatment_tensor_gets_converted_to_boolean_tensor(self):
     layer = self._get_layer()
     inputs = self._get_inputs(is_treatment=tf.constant([1, 1, 0]))
     outputs = layer(inputs)
     self.assertAllEqual(tf.constant([True, True, False]), outputs.is_treatment)
+
+  def test_true_logits_correctness_with_logits_rank_mismatch(self):
+    layer = self._get_layer()
+    inputs = self._get_inputs(
+        control_logits=tf.constant([[2], [0], [3]]),
+        treatment_logits=tf.constant([[-1], [2], [1]]),
+        is_treatment=tf.constant([1, 1, 0]),
+    )
+    outputs = layer(inputs)
+    self.assertAllEqual(tf.constant([[-1], [2], [3]]), outputs.true_predictions)
 
   @parameterized.product(
       (dict(is_treatment=None), dict(is_treatment=_DEFAULT_IS_TREATMENT)),

@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ from official.nlp.modeling.layers.attention import *
 from official.nlp.modeling.layers.bigbird_attention import BigBirdAttention
 from official.nlp.modeling.layers.bigbird_attention import BigBirdMasks
 from official.nlp.modeling.layers.block_diag_feedforward import BlockDiagFeedforward
+from official.nlp.modeling.layers.block_sparse_attention import MultiHeadAttention as BlockSparseAttention
 from official.nlp.modeling.layers.cls_head import *
 from official.nlp.modeling.layers.factorized_embedding import FactorizedEmbedding
 from official.nlp.modeling.layers.gated_feedforward import GatedFeedforward
@@ -44,8 +45,10 @@ from official.nlp.modeling.layers.moe import FeedForwardExperts
 from official.nlp.modeling.layers.moe import MoeLayer
 from official.nlp.modeling.layers.moe import MoeLayerWithBackbone
 from official.nlp.modeling.layers.multi_channel_attention import *
+from official.nlp.modeling.layers.multi_query_attention import MultiHeadAttention as MultiQueryAttention
 from official.nlp.modeling.layers.on_device_embedding import OnDeviceEmbedding
 from official.nlp.modeling.layers.pack_optimization import PackBertEmbeddings
+from official.nlp.modeling.layers.pack_optimization import StridedReZeroTransformer
 from official.nlp.modeling.layers.pack_optimization import StridedTransformerEncoderBlock
 from official.nlp.modeling.layers.pack_optimization import StridedTransformerScaffold
 from official.nlp.modeling.layers.per_dim_scale_attention import PerDimScaleAttention

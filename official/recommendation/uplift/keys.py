@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,16 +13,16 @@
 # limitations under the License.
 
 """Defines enum keys used by the keras uplift modeling library."""
+
 import enum
 
 
-class StrEnum(str, enum.Enum):
-  """An Enum represented by a string."""
+class TwoTowerOutputKeys(str, enum.Enum):
+  """Keys for training and inference output tensors."""
 
-
-class TwoTowerPredictionKeys(StrEnum):
-  """Keys for prediction tensors."""
-
-  UPLIFT = "uplift_predictions"
-  CONTROL = "control_predictions"
-  TREATMENT = "treatment_predictions"
+  CONTROL_PREDICTIONS = "control_predictions"
+  TREATMENT_PREDICTIONS = "treatment_predictions"
+  UPLIFT_PREDICTIONS = "uplift_predictions"
+  IS_TREATMENT = "is_treatment"
+  TRUE_LOGITS = "true_logits"
+  TRUE_PREDICTIONS = "true_predictions"

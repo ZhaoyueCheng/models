@@ -28,7 +28,7 @@ and modeling solutions for TensorFlow users.
 
 ## Model paths in GCP buckets
 
-### 3 Model Strategy (v1)
+### 3 Model Strategy
 
 | Model categories | Model backbone | Model type | GCP bucket path |
 | ------ | ------ | ----- | ------ |
@@ -36,14 +36,18 @@ and modeling solutions for TensorFlow users.
 | Material Form Model | Resnet | saved model & TFLite | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/material_form_model.zip) |
 |Plastic Model | Resnet | saved model & TFLite | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/plastic_types_model.zip) |
 
-### 2 Model Strategy (v2 - trained on larger dataset)
-
-### Material type model in v2 provides combined output across Material & Plastic Type models in v1
+### 2 Model Strategy
+### Combines plastic type and material type identifications into a unified model
+### v2 version is trained on larger datasets than v1
 
 Model categories | Model backbone | Model type  | GCP bucket path |
 | ------ | ------ | ----- | ------ |
 Material Type Model | Resnet | saved model | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/two_model_strategy/material/material_version_2.zip)
 Material Form Model | Resnet | saved model | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/two_model_strategy/material_form/material_form_version_2.zip)
+Material Type Model V2 | Resnet | saved model | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/resnet_material_v2.zip)
+Material Form Model V2 | Resnet | saved model | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/resnet_material_form_v2.zip)
+Material Type Model V2| MobileNet | saved model | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/mobilenet_material.zip)
+Material Form Model V2| MobileNet | saved model | [click here](https://storage.googleapis.com/tf_model_garden/vision/waste_identification_ml/mobilenet_material_form.zip)
 
 ## Authors and Maintainers
 - Umair Sabir

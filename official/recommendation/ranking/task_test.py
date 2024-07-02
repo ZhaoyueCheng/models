@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,15 +20,23 @@ import tensorflow as tf, tf_keras
 from official.core import exp_factory
 from official.recommendation.ranking import task
 from official.recommendation.ranking.data import data_pipeline
+from official.recommendation.ranking.data import data_pipeline_multi_hot
 
 
 class TaskTest(parameterized.TestCase, tf.test.TestCase):
 
-  @parameterized.parameters(('dlrm_criteo', True),
-                            ('dlrm_criteo', False),
-                            ('dcn_criteo', True),
-                            ('dcn_criteo', False))
-  def test_task(self, config_name, is_training):
+  @parameterized.parameters(('dlrm_criteo', True, False),
+                            ('dlrm_criteo', False, False),
+                            ('dcn_criteo', True, False),
+                            ('dcn_criteo', False, False),
+                            ('dlrm_criteo', True, True),
+                            ('dlrm_criteo', False, True),
+                            ('dcn_criteo', True, True),
+                            ('dcn_criteo', False, True),
+                            ('dlrm_dcn_v2_criteo', True, True),
+                            ('dlrm_dcn_v2_criteo', False, True),
+                            )
+  def test_task(self, config_name, is_training, use_multi_hot):
     params = exp_factory.get_exp_config(config_name)
 
     params.task.train_data.global_batch_size = 16
@@ -42,10 +50,16 @@ class TaskTest(parameterized.TestCase, tf.test.TestCase):
     ranking_task = task.RankingTask(params.task,
                                     params.trainer)
 
-    if is_training:
-      dataset = data_pipeline.train_input_fn(params.task)
+    if use_multi_hot:
+      if is_training:
+        dataset = data_pipeline_multi_hot.train_input_fn(params.task)
+      else:
+        dataset = data_pipeline_multi_hot.eval_input_fn(params.task)
     else:
-      dataset = data_pipeline.eval_input_fn(params.task)
+      if is_training:
+        dataset = data_pipeline.train_input_fn(params.task)
+      else:
+        dataset = data_pipeline.eval_input_fn(params.task)
 
     iterator = iter(dataset(ctx=None))
     model = ranking_task.build_model()

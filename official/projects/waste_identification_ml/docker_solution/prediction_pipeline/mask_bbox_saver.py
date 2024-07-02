@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ saves this annotated image.
 
 import os
 import sys
-from typing import Any
+from typing import Any, Dict
 import cv2
 import numpy as np
 
@@ -35,11 +35,11 @@ from object_detection.utils import visualization_utils as viz_utils  # pylint: d
 
 
 def save_bbox_masks_labels(
-    result: dict[Any, np.ndarray],
+    result: Dict[Any, np.ndarray],
     image: np.ndarray,
     file_name: str,
     folder: str,
-    category_index: dict[int, dict[str, str]],
+    category_index: Dict[int, Dict[str, str]],
     threshold: float,
 ) -> None:
   """Saves an image with visualized bounding boxes, labels, and masks.
@@ -60,10 +60,6 @@ def save_bbox_masks_labels(
     threshold: Value between 0 and 1 to filter out the prediction results.
   """
   image_new = image.copy()
-  if 'detection_masks_reframed' in result:
-    result['detection_masks_reframed'] = result[
-        'detection_masks_reframed'
-    ].astype(np.uint8)
 
   viz_utils.visualize_boxes_and_labels_on_image_array(
       image_new,
@@ -72,11 +68,11 @@ def save_bbox_masks_labels(
       result['detection_scores'][0],
       category_index=category_index,
       use_normalized_coordinates=True,
-      max_boxes_to_draw=100,
+      max_boxes_to_draw=70,
       min_score_thresh=threshold,
       agnostic_mode=False,
-      instance_masks=result.get('detection_masks_reframed', None),
-      line_thickness=2,
+      instance_masks=result.get('detection_masks_resized', None),
+      line_thickness=4,
   )
 
   cv2.imwrite(
@@ -86,7 +82,7 @@ def save_bbox_masks_labels(
 
 
 def save_binary_masks(
-    result: dict[Any, np.ndarray], file_name: str, folder: str
+    result: Dict[Any, np.ndarray], file_name: str, folder: str
 ) -> None:
   """Saves binary masks generated from object detection results.
 
@@ -101,7 +97,7 @@ def save_binary_masks(
     file_name: The filename for saving the output mask image.
     folder: The folder path where the output mask image will be saved.
   """
-  mask = np.zeros_like(result['detection_masks_reframed'][0])
+  mask = np.zeros_like(result['detection_masks_reframed'][0], dtype=np.uint8)
   result['detection_masks_reframed'] = result[
       'detection_masks_reframed'
   ].astype(np.uint8)

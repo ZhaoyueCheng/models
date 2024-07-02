@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -132,6 +132,7 @@ class RetinaNetTask(base_task.Task):
         ),
         aug_type=params.parser.aug_type,
         aug_rand_hflip=params.parser.aug_rand_hflip,
+        aug_rand_jpeg=params.parser.aug_rand_jpeg,
         aug_scale_min=params.parser.aug_scale_min,
         aug_scale_max=params.parser.aug_scale_max,
         skip_crowd_during_training=params.parser.skip_crowd_during_training,

@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -137,6 +137,38 @@ class BertEncoderTest(tf.test.TestCase, parameterized.TestCase):
 
     # The default output dtype is float32.
     self.assertAllEqual(tf.float32, all_attention_outputs[-1].dtype)
+
+  @parameterized.named_parameters(
+      ("encoder_v2", bert_encoder.BertEncoderV2),
+      ("encoder_v1", bert_encoder.BertEncoder),
+  )
+  def test_dict_outputs_network_creation_return_word_embeddings(
+      self, encoder_cls):
+    hidden_size = 32
+    sequence_length = 21
+    num_attention_heads = 5
+    num_layers = 3
+    # Create a small BertEncoder for testing.
+    test_network = encoder_cls(
+        vocab_size=100,
+        hidden_size=hidden_size,
+        num_attention_heads=num_attention_heads,
+        num_layers=num_layers,
+        return_word_embeddings=True,
+        dict_outputs=True)
+    # Create the inputs (note that the first dimension is implicit).
+    word_ids = tf_keras.Input(shape=(sequence_length,), dtype=tf.int32)
+    mask = tf_keras.Input(shape=(sequence_length,), dtype=tf.int32)
+    type_ids = tf_keras.Input(shape=(sequence_length,), dtype=tf.int32)
+    dict_outputs = test_network(
+        dict(input_word_ids=word_ids, input_mask=mask, input_type_ids=type_ids))
+    word_embeddings = dict_outputs["word_embeddings"]
+
+    expected_data_shape = [None, sequence_length, hidden_size]
+    self.assertAllEqual(expected_data_shape, word_embeddings.shape)
+
+    # The default output dtype is float32.
+    self.assertAllEqual(tf.float32, word_embeddings[-1].dtype)
 
   @parameterized.named_parameters(
       ("encoder_v2", bert_encoder.BertEncoderV2),

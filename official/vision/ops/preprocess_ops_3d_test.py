@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 
 import io
 import itertools
@@ -180,6 +179,25 @@ class ParserUtilsTest(tf.test.TestCase):
     flipped = np.broadcast_to(flipped, (6, 90, 120, 3))
     self.assertTrue((flipped_frames == self._np_frames).numpy().all() or (
         flipped_frames == flipped).numpy().all())
+
+  def test_random_rotation(self):
+    rotated_frames = preprocess_ops_3d.random_rotation(self._frames)
+
+    rotated_once = np.rot90(self._np_frames[0, :, :, 0], 1)
+    rotated_twice = np.rot90(self._np_frames[0, :, :, 0], 2)
+    rotated_thrice = np.rot90(self._np_frames[0, :, :, 0], 3)
+    rotated_once = rotated_once[np.newaxis, :, :, np.newaxis]
+    rotated_twice = rotated_twice[np.newaxis, :, :, np.newaxis]
+    rotated_thrice = rotated_thrice[np.newaxis, :, :, np.newaxis]
+    rotated_once = np.broadcast_to(rotated_once, (6, 120, 90, 3))
+    rotated_twice = np.broadcast_to(rotated_twice, (6, 90, 120, 3))
+    rotated_thrice = np.broadcast_to(rotated_thrice, (6, 120, 90, 3))
+    self.assertTrue(
+        (rotated_frames == self._np_frames).numpy().all()
+        or (rotated_frames == rotated_once).numpy().all()
+        or (rotated_frames == rotated_twice).numpy().all()
+        or (rotated_frames == rotated_thrice).numpy().all()
+    )
 
   def test_normalize_image(self):
     normalized_images_1 = preprocess_ops_3d.normalize_image(

@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -314,6 +314,33 @@ class SlicedMetricTest(keras_test_case.KerasTestCase, parameterized.TestCase):
         "accuracy/purchase": 1.0,
     }
     self.assertDictEqual(expected_result, metric.result())
+
+  def test_reset_state(self):
+    metric = sliced_metric.SlicedMetric(
+        metric=tf_keras.metrics.AUC(curve="PR", from_logits=False, name="auc"),
+        slicing_spec={"control": False, "treatment": True},
+    )
+
+    expected_initial_result = {
+        "auc": 0.0,
+        "auc/control": 0.0,
+        "auc/treatment": 0.0,
+    }
+    self.assertAllClose(expected_initial_result, metric.result())
+
+    metric.update_state(
+        tf.constant([[0], [0], [1], [1]]),  # y_true
+        tf.constant([[0.2], [0.6], [0.3], [0.7]]),  # y_pred
+        slicing_feature=tf.constant([[True], [False], [True], [False]]),
+    )
+
+    result = metric.result()
+    self.assertGreater(result["auc"], 0.0)
+    self.assertGreater(result["auc/control"], 0.0)
+    self.assertGreater(result["auc/treatment"], 0.0)
+
+    metric.reset_state()
+    self.assertAllClose(expected_initial_result, metric.result())
 
   def test_metric_config(self):
     metric = sliced_metric.SlicedMetric(

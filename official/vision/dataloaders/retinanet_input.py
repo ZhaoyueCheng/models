@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ from typing import Optional
 from absl import logging
 import tensorflow as tf, tf_keras
 
+from official.vision.configs import common as cfg
 from official.vision.dataloaders import parser
 from official.vision.dataloaders import utils
 from official.vision.ops import anchor
@@ -38,16 +39,17 @@ class Parser(parser.Parser):
 
   def __init__(self,
                output_size,
-               min_level,
+               min_level: int | None,
                max_level,
-               num_scales,
-               aspect_ratios,
-               anchor_size,
+               num_scales: int | None,
+               aspect_ratios: list[float] | None,
+               anchor_size: float | None,
                match_threshold=0.5,
                unmatched_threshold=0.5,
                box_coder_weights=None,
                aug_type=None,
                aug_rand_hflip=False,
+               aug_rand_jpeg: cfg.RandJpegQuality | None = None,
                aug_scale_min=1.0,
                aug_scale_max=1.0,
                use_autoaugment=False,
@@ -61,20 +63,28 @@ class Parser(parser.Parser):
                keep_aspect_ratio=True):
     """Initializes parameters for parsing annotations in the dataset.
 
+    If one provides `input_anchor` when calling `_parse_eval_data()` and
+    `_parse_train_data()`, the `min_level`, `num_scales`, `aspect_ratios`, and
+    `anchor_size` can be `None`.
+
     Args:
       output_size: `Tensor` or `list` for [height, width] of output image. The
         output_size should be divided by the largest feature stride 2^max_level.
       min_level: `int` number of minimum level of the output feature pyramid.
+        Can be `None` if `input_anchor` is provided in `_parse_*_data()`.
       max_level: `int` number of maximum level of the output feature pyramid.
       num_scales: `int` number representing intermediate scales added on each
         level. For instances, num_scales=2 adds one additional intermediate
-        anchor scales [2^0, 2^0.5] on each level.
+        anchor scales [2^0, 2^0.5] on each level. Can be `None` if
+        `input_anchor` is provided in `_parse_*_data()`.
       aspect_ratios: `list` of float numbers representing the aspect ratio
         anchors added on each level. The number indicates the ratio of width to
         height. For instances, aspect_ratios=[1.0, 2.0, 0.5] adds three anchors
-        on each scale level.
+        on each scale level. Can be `None` if `input_anchor` is provided in
+        `_parse_*_data()`.
       anchor_size: `float` number representing the scale of size of the base
-        anchor to the feature stride 2^level.
+        anchor to the feature stride 2^level. Can be `None` if `input_anchor` is
+        provided in `_parse_*_data()`.
       match_threshold: `float` number between 0 and 1 representing the
         lower-bound threshold to assign positive labels for anchors. An anchor
         with a score over the threshold is labeled positive.
@@ -89,6 +99,7 @@ class Parser(parser.Parser):
         RandAugment.
       aug_rand_hflip: `bool`, if True, augment training with random horizontal
         flip.
+      aug_rand_jpeg: if not None, apply random JPEG quality change augmentation.
       aug_scale_min: `float`, the minimum scale applied to `output_size` for
         data augmentation during training.
       aug_scale_max: `float`, the maximum scale applied to `output_size` for
@@ -134,6 +145,7 @@ class Parser(parser.Parser):
 
     # Data augmentation.
     self._aug_rand_hflip = aug_rand_hflip
+    self._aug_rand_jpeg = aug_rand_jpeg
     self._aug_scale_min = aug_scale_min
     self._aug_scale_max = aug_scale_max
 
@@ -155,6 +167,13 @@ class Parser(parser.Parser):
             translate_const=aug_type.randaug.translate_const,
             prob_to_apply=aug_type.randaug.prob_to_apply,
             exclude_ops=aug_type.randaug.exclude_ops)
+      elif aug_type.type == 'ssd_random_crop':
+        logging.info('Using SSD Random Crop.')
+        self._augmenter = augment.SSDRandomCrop(
+            params=aug_type.ssd_random_crop.ssd_random_crop_params,
+            aspect_ratio_range=aug_type.ssd_random_crop.aspect_ratio_range,
+            area_range=aug_type.ssd_random_crop.area_range,
+        )
       else:
         raise ValueError(f'Augmentation policy {aug_type.type} not supported.')
 
@@ -242,6 +261,16 @@ class Parser(parser.Parser):
     # Apply autoaug or randaug.
     if self._augmenter is not None:
       image, boxes = self._augmenter.distort_with_boxes(image, boxes)
+
+    # Apply random jpeg quality change.
+    if self._aug_rand_jpeg is not None:
+      image = preprocess_ops.random_jpeg_quality(
+          image,
+          min_quality=self._aug_rand_jpeg.min_quality,
+          max_quality=self._aug_rand_jpeg.max_quality,
+          prob_to_apply=self._aug_rand_jpeg.prob_to_apply,
+      )
+
     image_shape = tf.shape(input=image)[0:2]
 
     # Normalizes image with mean and std pixel values.

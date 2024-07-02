@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 """TensorFlow Models Libraries."""
 # pylint: disable=wildcard-import
 from tensorflow_models import nlp
+from tensorflow_models import uplift
 from tensorflow_models import vision
 
 from official import core

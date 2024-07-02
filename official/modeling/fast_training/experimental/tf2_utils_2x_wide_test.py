@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -70,6 +70,31 @@ class Tf2Utils2XWideTest(tf.test.TestCase):
     o0 = np.matmul(x, w0)
     o1 = np.matmul(x, w1)
     self.assertAllClose(o0, np.sum(o1.reshape(2, 2), axis=-1))
+
+  def test_relations(self):
+    x = np.array([10, 11])
+    w = np.random.rand(2, 2)
+    # matmul(x, w) == matmul(expand_vector(x), expand_1_axis(w, axis=0))
+    lhs = np.matmul(x, w)
+    rhs = np.matmul(
+        tf2_utils_2x_wide.expand_vector(x),
+        tf2_utils_2x_wide.expand_1_axis(w, epsilon=0.1, axis=0),
+    )
+    self.assertAllClose(lhs, rhs)
+    # expand_vector(matmul(x, w)) ==
+    # 2 * matmul(x, expand_1_axis(w, epsilon=0.0, axis=-1))
+    lhs = tf2_utils_2x_wide.expand_vector(np.matmul(x, w))
+    rhs = 2 * np.matmul(
+        x, tf2_utils_2x_wide.expand_1_axis(w, epsilon=0.0, axis=-1)
+    )
+    self.assertAllClose(lhs, rhs)
+    # expand_vector(matmul(x, w)) == matmul(expand_vector(x), expand_2_axes(w))
+    lhs = tf2_utils_2x_wide.expand_vector(np.matmul(x, w))
+    rhs = np.matmul(
+        tf2_utils_2x_wide.expand_vector(x),
+        tf2_utils_2x_wide.expand_2_axes(w, epsilon=0.1),
+    )
+    self.assertAllClose(lhs, rhs)
 
   def test_end_to_end(self):
     """Covers expand_vector, expand_2_axes, and expand_1_axis."""

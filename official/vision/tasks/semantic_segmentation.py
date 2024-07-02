@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -114,7 +114,8 @@ class SemanticSegmentationTask(base_task.Task):
         preserve_aspect_ratio=params.preserve_aspect_ratio,
         dtype=params.dtype,
         image_feature=params.image_feature,
-        additional_dense_features=params.additional_dense_features)
+        additional_dense_features=params.additional_dense_features,
+        centered_crop=params.centered_crop)
 
     reader = input_reader_factory.input_reader_generator(
         params,

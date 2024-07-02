@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ class MultiTaskBaseTrainer(orbit.StandardTrainer):
           task_metrics=self.training_metrics)
       for key, loss in losses.items():
         self.training_losses[key].update_state(loss)
+      self.global_step.assign_add(1)
 
     self.strategy.run(
         step_fn, args=(tf.nest.map_structure(next, iterator_map),))
-    self.global_step.assign_add(1)

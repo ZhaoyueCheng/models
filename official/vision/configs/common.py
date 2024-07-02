@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 """Common configurations."""
 
 import dataclasses
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
 # Import libraries
 
@@ -101,6 +101,35 @@ class MixupAndCutmix(hyperparams.Config):
 
 
 @dataclasses.dataclass
+class SSDRandomCropParam(hyperparams.Config):
+  min_object_covered: float = 0.0
+  min_box_overlap: float = 0.5
+  prob_to_apply: float = 0.85
+
+
+@dataclasses.dataclass
+class SSDRandomCrop(hyperparams.Config):
+  """Configuration for SSDRandomCrop.
+
+  Liu et al., SSD: Single shot multibox detector
+  https://arxiv.org/abs/1512.02325.
+  """
+  ssd_random_crop_params: Sequence[SSDRandomCropParam] = dataclasses.field(
+      default_factory=lambda: (
+          SSDRandomCropParam(min_object_covered=0.0),
+          SSDRandomCropParam(min_object_covered=0.1),
+          SSDRandomCropParam(min_object_covered=0.3),
+          SSDRandomCropParam(min_object_covered=0.5),
+          SSDRandomCropParam(min_object_covered=0.7),
+          SSDRandomCropParam(min_object_covered=0.9),
+          SSDRandomCropParam(min_object_covered=1.0),
+      )
+  )
+  aspect_ratio_range: tuple[float, float] = (0.5, 2.0)
+  area_range: tuple[float, float] = (0.1, 1.0)
+
+
+@dataclasses.dataclass
 class Augmentation(hyperparams.OneOfConfig):
   """Configuration for input data augmentation.
 
@@ -112,6 +141,16 @@ class Augmentation(hyperparams.OneOfConfig):
   type: Optional[str] = None
   randaug: RandAugment = dataclasses.field(default_factory=RandAugment)
   autoaug: AutoAugment = dataclasses.field(default_factory=AutoAugment)
+  ssd_random_crop: SSDRandomCrop = dataclasses.field(
+      default_factory=SSDRandomCrop
+  )
+
+
+@dataclasses.dataclass
+class RandJpegQuality(hyperparams.Config):
+  min_quality: int = 20
+  max_quality: int = 100
+  prob_to_apply: float = 0.6
 
 
 @dataclasses.dataclass
@@ -157,3 +196,11 @@ class TFLitePostProcessingConfig(hyperparams.Config):
   # Whether to omit the final nms placeholder op. If set to True, the output
   # will be a tuple of boxes, scores result right before the NMS operation.
   omit_nms: Optional[bool] = False
+  # The number of detections per class when using regular NMS.
+  detections_per_class: Optional[int] = 5
+  # Box scaling factors. It should agree with `box_coder_weights` defined in
+  # `DetectionGenerator`, which is in the format of [y, x, w, h].
+  y_scale: float = 1.0
+  x_scale: float = 1.0
+  w_scale: float = 1.0
+  h_scale: float = 1.0

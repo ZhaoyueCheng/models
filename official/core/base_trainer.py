@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -460,7 +460,7 @@ class Trainer(_AsyncTrainer):
           passthrough_logs.keys(),
       )
 
-    return passthrough_logs | logs
+    return {**passthrough_logs, **logs}
 
   def eval_end(self, aggregated_logs=None):
     """Processes evaluation results."""

@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -297,13 +297,6 @@ class ParamsDict(object):
           raise KeyError(
               'Found inconsistency between key `{}` and key `{}`.'.format(
                   tokens[0], tokens[1]))
-      elif '<' in restriction:
-        tokens = restriction.split('<')
-        _, left_v, _, right_v = _get_kvs(tokens, params_dict)
-        if left_v >= right_v:
-          raise KeyError(
-              'Found inconsistency between key `{}` and key `{}`.'.format(
-                  tokens[0], tokens[1]))
       elif '<=' in restriction:
         tokens = restriction.split('<=')
         _, left_v, _, right_v = _get_kvs(tokens, params_dict)
@@ -311,10 +304,10 @@ class ParamsDict(object):
           raise KeyError(
               'Found inconsistency between key `{}` and key `{}`.'.format(
                   tokens[0], tokens[1]))
-      elif '>' in restriction:
-        tokens = restriction.split('>')
+      elif '<' in restriction:
+        tokens = restriction.split('<')
         _, left_v, _, right_v = _get_kvs(tokens, params_dict)
-        if left_v <= right_v:
+        if left_v >= right_v:
           raise KeyError(
               'Found inconsistency between key `{}` and key `{}`.'.format(
                   tokens[0], tokens[1]))
@@ -322,6 +315,13 @@ class ParamsDict(object):
         tokens = restriction.split('>=')
         _, left_v, _, right_v = _get_kvs(tokens, params_dict)
         if left_v < right_v:
+          raise KeyError(
+              'Found inconsistency between key `{}` and key `{}`.'.format(
+                  tokens[0], tokens[1]))
+      elif '>' in restriction:
+        tokens = restriction.split('>')
+        _, left_v, _, right_v = _get_kvs(tokens, params_dict)
+        if left_v <= right_v:
           raise KeyError(
               'Found inconsistency between key `{}` and key `{}`.'.format(
                   tokens[0], tokens[1]))

@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,10 +35,16 @@ class SegmentationModule(export_base.ExportModule):
 
   def _build_inputs(self, image):
     """Builds classification model inputs for serving."""
+    if isinstance(image, tf.RaggedTensor):
+      image = image.to_tensor()
+    image = tf.cast(image, dtype=tf.float32)
 
     # Normalizes image with mean and std pixel values.
+    image_feature = self.params.task.train_data.image_feature
     image = preprocess_ops.normalize_image(
-        image, offset=preprocess_ops.MEAN_RGB, scale=preprocess_ops.STDDEV_RGB)
+        image,
+        offset=image_feature.mean,
+        scale=image_feature.stddev)
 
     if self.params.task.train_data.preserve_aspect_ratio:
       image, image_info = preprocess_ops.resize_and_crop_image(
@@ -65,7 +71,6 @@ class SegmentationModule(export_base.ExportModule):
     image_info = None
     if self._input_type != 'tflite':
       with tf.device('cpu:0'):
-        images = tf.cast(images, dtype=tf.float32)
         images_spec = tf.TensorSpec(
             shape=self._input_image_size + [3], dtype=tf.float32)
         image_info_spec = tf.TensorSpec(shape=[4, 2], dtype=tf.float32)

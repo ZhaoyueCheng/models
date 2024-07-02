@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@ AutoAugment Reference: https://arxiv.org/abs/1805.09501
 RandAugment Reference: https://arxiv.org/abs/1909.13719
 
 This library is adapted from:
-`https://github.com/tensorflow/tpu/blob/master/models/official/efficientnet/autoaugment.py`.
+`models/official/efficientnet/autoaugment.py` of
+`https://github.com/tensorflow/tpu`.
 Several changes are made. They are inspired by the TIMM library:
-https://github.com/rwightman/pytorch-image-models/tree/master/timm/data
+`https://github.com/rwightman/pytorch-image-models/`
 
 Changes include:
 (1) Random Erasing / Cutout is added, and separated from the random augmentation

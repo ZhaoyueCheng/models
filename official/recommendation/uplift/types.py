@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -99,6 +99,10 @@ class TwoTowerTrainingOutputs(TwoTowerPredictionOutputs):
       the corresponding value in the `is_treatment` tensor. It will contain
       treatment group logits for the `is_treatment == 1` entries and control
       group logits otherwise.
+    true_predictions: predictions for either the control or treatment group,
+      depending on the corresponding value in the `is_treatment` tensor. It will
+      contain treatment group predictions for the `is_treatment == 1` entries
+      and control group predictions otherwise.
     is_treatment: a boolean `tf.Tensor` indicating if the example belongs to the
       treatment group (True) or control group (False).
   """
@@ -106,6 +110,7 @@ class TwoTowerTrainingOutputs(TwoTowerPredictionOutputs):
   __name__ = "TwoTowerTrainingOutputs"
 
   true_logits: tf.Tensor
+  true_predictions: tf.Tensor
   is_treatment: tf.Tensor
 
   # TODO(b/281776818): Override __validate__ to assert that the true logits is

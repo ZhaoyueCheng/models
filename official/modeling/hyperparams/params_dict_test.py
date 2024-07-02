@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -167,6 +167,7 @@ class ParamsDictTest(tf.test.TestCase):
             'a': 10
         }
     }, ['b == c'])
+    params.validate()
 
     # Raise error due to inconsistency
     with self.assertRaises(KeyError):
@@ -197,6 +198,10 @@ class ParamsDictTest(tf.test.TestCase):
           }
       }, ['a == None', 'c.a == 1'])
       params.validate()
+
+    # Valid restrictions with inequality.
+    params = params_dict.ParamsDict({'a': 1}, ['a >= 1'])
+    params.validate()
 
 
 class ParamsDictIOTest(tf.test.TestCase):

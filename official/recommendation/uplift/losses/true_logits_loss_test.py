@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -24,12 +24,13 @@ from official.recommendation.uplift.losses import true_logits_loss
 class TrueLogitsLossTest(tf.test.TestCase, parameterized.TestCase):
 
   def _get_y_pred(self, **kwargs):
-    # The shared embedding and control/treatment/uplift predictions are
+    # The shared embedding and control/treatment/uplift/true predictions are
     # distracting from the test logic.
     return types.TwoTowerTrainingOutputs(
         shared_embedding=tf.zeros((3, 1)),
         control_predictions=tf.zeros((3, 1)),
         treatment_predictions=tf.zeros((3, 1)),
+        true_predictions=tf.zeros((3, 1)),
         uplift=tf.zeros((3, 1)),
         **kwargs,
     )

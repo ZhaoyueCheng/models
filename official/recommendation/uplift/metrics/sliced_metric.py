@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -192,6 +192,11 @@ class SlicedMetric(tf_keras.metrics.Metric):
         "a `dict[str, tf.Tensor]`, but got unsupported output: "
         f"{metric_result}."
     )
+
+  def reset_state(self):
+    self._metric.reset_state()
+    for metric in self._sliced_metrics:
+      metric.reset_state()
 
   def get_config(self):
     return {

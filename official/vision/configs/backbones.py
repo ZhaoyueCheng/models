@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -96,6 +96,10 @@ class MobileNet(hyperparams.Config):
   model_id: str = 'MobileNetV2'
   filter_size_scale: float = 1.0
   stochastic_depth_drop_rate: float = 0.0
+  # Whether to apply a fixed and common stochastic depth drop rate to all
+  # blocks, instead to linearly scale it from zero to maximum value (standard
+  # behaviour for stochastic depth). Set to True for backward compatibility.
+  flat_stochastic_depth_drop_rate: bool = True
   output_stride: Optional[int] = None
   output_intermediate_endpoints: bool = False
 

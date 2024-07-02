@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,35 @@ from official.recommendation.uplift import utils
 
 
 class UtilsTest(tf.test.TestCase, parameterized.TestCase):
+
+  @parameterized.named_parameters(
+      {
+          "testcase_name": "same_rank",
+          "a": tf.zeros((3, 1)),
+          "b": tf.zeros((3, 2)),
+          "expected_output": tf.zeros((3, 1)),
+      },
+      {
+          "testcase_name": "higher_rank",
+          "a": tf.zeros((3, 1)),
+          "b": tf.zeros((3,)),
+          "expected_output": tf.zeros((3, 1)),
+      },
+      {
+          "testcase_name": "one_less_rank",
+          "a": tf.zeros((3,)),
+          "b": tf.zeros((3, 2)),
+          "expected_output": tf.zeros((3, 1)),
+      },
+      {
+          "testcase_name": "multiple_rank_difference",
+          "a": tf.zeros((3, 4)),
+          "b": tf.zeros((3, 1, 2, 4)),
+          "expected_output": tf.zeros((3, 4, 1, 1)),
+      },
+  )
+  def test_expand_to_match_rank(self, a, b, expected_output):
+    self.assertAllEqual(expected_output, utils.expand_to_match_rank(a, b))
 
   @parameterized.named_parameters(
       {

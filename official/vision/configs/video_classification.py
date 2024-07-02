@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ class DataConfig(cfg.DataConfig):
   aug_max_aspect_ratio: float = 2.0
   aug_min_area_ratio: float = 0.49
   aug_max_area_ratio: float = 1.0
+  aug_random_rotation: bool = False
   aug_type: Optional[
       common.Augmentation] = None  # AutoAugment and RandAugment.
   mixup_and_cutmix: Optional[common.MixupAndCutmix] = None

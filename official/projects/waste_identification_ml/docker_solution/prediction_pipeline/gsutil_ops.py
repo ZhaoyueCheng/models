@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ def copy(path: str) -> None:
   Args:
     path: path of the video in GCS bucket.
   """
-  gsutil_command = f"gsutil cp {path} ."
+  gsutil_command = f"gsutil cp -r {path} ."
   subprocess.run(gsutil_command, shell=True, check=True)
 
 

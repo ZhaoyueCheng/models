@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -120,7 +120,9 @@ def frame_pooling(frames, method="average", num_frames=None):
           tf.ones_like(frames, dtype=frames.dtype)
           * _large_compatible_negative(frames.dtype),
       )
-    reduced = tf.reduce_max(frames, 1)
+    # Magic to avoid loss NaN when bfloat16 is enabled.
+    # See yaqs/5377152819545505792 and b/214396297 for more discussion.
+    reduced = tf.reduce_max(frames, 1) + tf.reduce_mean(frames, 1) * 0
   elif method == "swap":
     # Note we assume the frames are in the shape of
     # [batch_size, num_frames, feature_size]. Otherwise this function might

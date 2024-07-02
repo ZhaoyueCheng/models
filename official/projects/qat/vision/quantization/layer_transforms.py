@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,8 +28,13 @@ LayerNode = tfmot.quantization.keras.graph_transformations.transforms.LayerNode
 LayerPattern = tfmot.quantization.keras.graph_transformations.transforms.LayerPattern
 
 _LAYER_NAMES = [
-    'Vision>Conv2DBNBlock', 'Vision>InvertedBottleneckBlock',
-    'Vision>SegmentationHead', 'Vision>SpatialPyramidPooling', 'Vision>ASPP'
+    'Vision>Conv2DBNBlock',
+    'Vision>InvertedBottleneckBlock',
+    'Vision>MaybeDwInvertedBottleneckBlock',
+    'Vision>UniversalInvertedBottleneckBlock',
+    'Vision>SegmentationHead',
+    'Vision>SpatialPyramidPooling',
+    'Vision>ASPP',
 ]
 
 
@@ -104,15 +109,30 @@ class CustomLayerQuantize(
 
 
 CUSTOM_TRANSFORMS = [
-    CustomLayerQuantize('Vision>BottleneckBlock',
-                        quantized_nn_blocks.BottleneckBlockQuantized),
-    CustomLayerQuantize('Vision>InvertedBottleneckBlock',
-                        quantized_nn_blocks.InvertedBottleneckBlockQuantized),
-    CustomLayerQuantize('Vision>Conv2DBNBlock',
-                        quantized_nn_blocks.Conv2DBNBlockQuantized),
-    CustomLayerQuantize('Vision>SegmentationHead',
-                        quantized_nn_layers.SegmentationHeadQuantized),
-    CustomLayerQuantize('Vision>SpatialPyramidPooling',
-                        quantized_nn_layers.SpatialPyramidPoolingQuantized),
-    CustomLayerQuantize('Vision>ASPP', quantized_nn_layers.ASPPQuantized)
+    CustomLayerQuantize(
+        'Vision>BottleneckBlock', quantized_nn_blocks.BottleneckBlockQuantized
+    ),
+    CustomLayerQuantize(
+        'Vision>InvertedBottleneckBlock',
+        quantized_nn_blocks.InvertedBottleneckBlockQuantized,
+    ),
+    CustomLayerQuantize(
+        'Vision>MaybeDwInvertedBottleneckBlock',
+        quantized_nn_blocks.MaybeDwInvertedBottleneckBlockQuantized,
+    ),
+    CustomLayerQuantize(
+        'Vision>UniversalInvertedBottleneckBlock',
+        quantized_nn_blocks.UniversalInvertedBottleneckBlockQuantized,
+    ),
+    CustomLayerQuantize(
+        'Vision>Conv2DBNBlock', quantized_nn_blocks.Conv2DBNBlockQuantized
+    ),
+    CustomLayerQuantize(
+        'Vision>SegmentationHead', quantized_nn_layers.SegmentationHeadQuantized
+    ),
+    CustomLayerQuantize(
+        'Vision>SpatialPyramidPooling',
+        quantized_nn_layers.SpatialPyramidPoolingQuantized,
+    ),
+    CustomLayerQuantize('Vision>ASPP', quantized_nn_layers.ASPPQuantized),
 ]

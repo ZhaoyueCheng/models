@@ -1,4 +1,4 @@
-# Copyright 2023 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2024 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -112,3 +112,12 @@ def define_flags():
 
   flags.DEFINE_string(
       'tpu_platform', default=None, help='TPU platform type.')
+
+  flags.DEFINE_string(
+      'tfhub_handle',
+      None,
+      'TFHub handle for publishing the model to TFHub. The model '
+      'is published to TFHub if this flag is set. Please use a '
+      'TFHubPusher (go/tflex/standard_components/pusher) component if '
+      'running in TFleX.',
+  )

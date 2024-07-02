@@ -1,4 +1,4 @@
-# Copyright 2023 The Orbit Authors. All Rights Reserved.
+# Copyright 2024 The Orbit Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -108,10 +108,13 @@ class ExportFileManager:
       `ExportFileManager` instance, sorted in increasing integer order of the
       IDs returned by `next_id_fn`.
     """
-    files = _find_managed_files(self._base_name)
-    return [
-        safe_normpath(os.path.join(f, self._subdirectory)) for f in files
-    ]
+    files = []
+    for file in _find_managed_files(self._base_name):
+      # Normalize path and maybe add subdirectory...
+      file = safe_normpath(os.path.join(file, self._subdirectory))
+      if tf.io.gfile.exists(file):
+        files.append(file)
+    return files
 
   def clean_up(self):
     """Cleans up old files matching `{base_name}-*`.
